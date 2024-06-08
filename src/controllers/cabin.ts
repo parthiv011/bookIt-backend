@@ -66,3 +66,33 @@ export const deleteCabin = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const createCabin = async (req: Request, res: Response) => {
+  try {
+    const { name, maxCapacity, regularPrice, discount, description, image } =
+      req.body;
+
+    const cabin = await prisma.cabins.create({
+      data: {
+        name,
+        maxCapacity,
+        regularPrice,
+        discount,
+        description,
+        image,
+      },
+    });
+
+    res.json({
+      cabin,
+      msg: 'Cabin created successfully!',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+    });
+  }
+};
+
+export const updateCabin = async (req: Request, res: Response) => {};

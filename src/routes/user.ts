@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { deleteCabin, getCabinData } from '../controllers/user';
+import { createCabin, deleteCabin, getCabinData } from '../controllers/cabin';
 export const router = Router();
 
 router.get('/', (req: Request, res: Response) => {
@@ -8,3 +8,4 @@ router.get('/', (req: Request, res: Response) => {
 
 router.get('/cabins', getCabinData);
 router.delete('/cabin/:id', deleteCabin);
+router.post('/cabins', createCabin);
