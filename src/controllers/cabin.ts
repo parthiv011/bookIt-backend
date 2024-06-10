@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
 const prisma = new PrismaClient();
 
 export const getCabinData = async (req: Request, res: Response) => {
@@ -67,10 +70,51 @@ export const deleteCabin = async (req: Request, res: Response) => {
   }
 };
 
-export const createCabin = async (req: Request, res: Response) => {
+const dataDir = path.join(__dirname, '../../data/');
+if (!fs.existsSync(dataDir)) {
   try {
-    const { name, maxCapacity, regularPrice, discount, description, image } =
-      req.body;
+    fs.mkdirSync(dataDir, { recursive: true });
+  } catch (error) {
+    console.error('Error creating data directory:', error);
+    process.exit(1);
+  }
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, dataDir));
+  },
+
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+const uploadMiddleware = upload.single('image');
+
+export const createCabin = async (req: Request, res: Response) => {
+  uploadMiddleware(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({
+        error: err.message,
+      });
+    } else if (err) {
+      return res.status(500).json({
+        error: 'File Upload failed',
+      });
+    }
+  });
+  try {
+    const { name, maxCapacity, regularPrice, discount, description } = req.body;
+
+    let image = '';
+    if (req.file) {
+      image = req.file.path;
+      console.log(`File uploaded to: ${image}`);
+    }
 
     const cabin = await prisma.cabins.create({
       data: {
