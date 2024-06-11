@@ -82,9 +82,8 @@ if (!fs.existsSync(dataDir)) {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, dataDir));
+    cb(null, dataDir);
   },
-
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, uniqueSuffix + '-' + file.originalname);
@@ -106,37 +105,40 @@ export const createCabin = async (req: Request, res: Response) => {
         error: 'File Upload failed',
       });
     }
-  });
-  try {
-    const { name, maxCapacity, regularPrice, discount, description } = req.body;
 
-    let image = '';
-    if (req.file) {
-      image = req.file.path;
-      console.log(`File uploaded to: ${image}`);
+    try {
+      const { name, maxCapacity, regularPrice, discount, description } =
+        req.body;
+      const image = req.file?.filename;
+
+      if (!image) {
+        return res.status(400).json({
+          error: 'Image file is required',
+        });
+      }
+
+      const cabin = await prisma.cabins.create({
+        data: {
+          name,
+          maxCapacity,
+          regularPrice,
+          discount,
+          description,
+          image,
+        },
+      });
+
+      res.json({
+        cabin,
+        msg: 'Cabin created successfully!',
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+      });
     }
-
-    const cabin = await prisma.cabins.create({
-      data: {
-        name,
-        maxCapacity,
-        regularPrice,
-        discount,
-        description,
-        image,
-      },
-    });
-
-    res.json({
-      cabin,
-      msg: 'Cabin created successfully!',
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-    });
-  }
+  });
 };
 
 export const updateCabin = async (req: Request, res: Response) => {};
