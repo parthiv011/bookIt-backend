@@ -116,15 +116,16 @@ export const createCabin = async (req: Request, res: Response) => {
           error: 'Image file is required',
         });
       }
+      const imagePath = `/data/${image}`;
 
       const cabin = await prisma.cabins.create({
         data: {
           name,
-          maxCapacity,
-          regularPrice,
-          discount,
+          maxCapacity: parseInt(maxCapacity),
+          regularPrice: parseInt(regularPrice),
+          discount: parseInt(discount),
           description,
-          image,
+          image: imagePath,
         },
       });
 
