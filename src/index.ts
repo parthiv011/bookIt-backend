@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(cors({}));
 
 const dataPath = path.join(__dirname, '..', 'data');
-console.log(dataPath);
+
 app.use('/data', express.static(dataPath));
 
 app.use('/api/v1', router);

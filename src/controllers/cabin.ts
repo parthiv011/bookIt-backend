@@ -1,9 +1,17 @@
-import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
+import { PrismaClient } from '@prisma/client';
+// import { createClient } from '@supabase/supabase-js';
+dotenv.config();
 const prisma = new PrismaClient();
+
+// const supabaseUrl = process.env.SUPABASE_URL || '';
+// const supabaseKey = process.env.SUPABASE_KEY || '';
+
+// const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getCabinData = async (req: Request, res: Response) => {
   try {
@@ -15,6 +23,7 @@ export const getCabinData = async (req: Request, res: Response) => {
         regularPrice: true,
         discount: true,
         image: true,
+        description: true,
       },
     });
 
@@ -34,7 +43,7 @@ export const getCabinData = async (req: Request, res: Response) => {
       cabins,
     });
   } catch (e) {
-    console.log('Failed to get Todos', e);
+    console.log('Failed to get Cabins', e);
   }
 };
 
@@ -107,16 +116,26 @@ export const createCabin = async (req: Request, res: Response) => {
     }
 
     try {
-      const { name, maxCapacity, regularPrice, discount, description } =
-        req.body;
+      const {
+        name,
+        maxCapacity,
+        regularPrice,
+        discount,
+        description,
+        image: imageString,
+      } = req.body;
       const image = req.file?.filename;
-
-      if (!image) {
+      let hasPath;
+      if (image) {
+        hasPath = `/data/${image}`;
+      } else if (typeof imageString === 'string') {
+        hasPath = `${imageString}`;
+      } else {
         return res.status(400).json({
-          error: 'Image file is required',
+          error: 'Image file or image string is required',
         });
       }
-      const imagePath = `/data/${image}`;
+      // const hasPath = typeof image === 'string' ? `/data/${image}` : image;
 
       const cabin = await prisma.cabins.create({
         data: {
@@ -125,7 +144,7 @@ export const createCabin = async (req: Request, res: Response) => {
           regularPrice: parseInt(regularPrice),
           discount: parseInt(discount),
           description,
-          image: imagePath,
+          image: hasPath,
         },
       });
 
@@ -142,4 +161,53 @@ export const createCabin = async (req: Request, res: Response) => {
   });
 };
 
-export const updateCabin = async (req: Request, res: Response) => {};
+export const updateCabin = async (req: Request, res: Response) => {
+  uploadMiddleware(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({
+        error: err.message,
+      });
+    } else if (err) {
+      return res.status(500).json({
+        error: 'File Upload failed',
+      });
+    }
+
+    try {
+      const { id, name, maxCapacity, regularPrice, discount, description } =
+        req.body;
+      const image = req.file?.filename;
+      const cabinId = parseInt(id);
+      const hasPath = typeof image === 'string' ? `/data/${image}` : image;
+
+      // if (!image) {
+      //   return res.status(400).json({
+      //     error: 'Image file is required',
+      //   });
+      // }
+      // const imagePath = `/data/${image}`;
+
+      const cabin = await prisma.cabins.update({
+        where: { id: cabinId },
+        data: {
+          name,
+          maxCapacity: parseInt(maxCapacity),
+          regularPrice: parseInt(regularPrice),
+          discount: parseInt(discount),
+          description,
+          image: hasPath,
+        },
+      });
+
+      res.json({
+        cabin,
+        msg: 'Cabin updated successfully!',
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+      });
+    }
+  });
+};
