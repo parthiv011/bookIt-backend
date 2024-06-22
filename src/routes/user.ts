@@ -6,6 +6,8 @@ import {
   updateCabin,
 } from '../controllers/cabin';
 import { getSettings, updateSettings } from '../controllers/settings';
+import authMiddleware from '../middlewares/auth';
+import { getCurrentUser, login, register } from '../controllers/users';
 // import {
 //   deleteBookings,
 //   getBookings,
@@ -16,6 +18,11 @@ export const router = Router();
 router.get('/', (req: Request, res: Response) => {
   res.json('Hello from user!');
 });
+
+// User routes
+router.post('/login', login);
+router.post('/register', register);
+router.get('/me', authMiddleware, getCurrentUser);
 
 // Cabin routes
 router.get('/cabins', getCabinData);

@@ -68,6 +68,9 @@ export const deleteCabin = async (req: Request, res: Response) => {
       where: { id: cabinId },
     });
 
+    // const dataDir = path.join(__dirname, '../../data', cabinId.toString());
+    // console.log(dataDir);
+
     res.json({
       msg: 'Cabin deleted successfully!',
     });
