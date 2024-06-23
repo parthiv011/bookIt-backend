@@ -7,7 +7,7 @@ import {
 } from '../controllers/cabin';
 import { getSettings, updateSettings } from '../controllers/settings';
 import authMiddleware from '../middlewares/auth';
-import { getCurrentUser, login, register } from '../controllers/users';
+import { getCurrentUser, login, logout, register } from '../controllers/users';
 // import {
 //   deleteBookings,
 //   getBookings,
@@ -23,6 +23,7 @@ router.get('/', (req: Request, res: Response) => {
 router.post('/login', login);
 router.post('/register', register);
 router.get('/me', authMiddleware, getCurrentUser);
+router.get('/logout', logout);
 
 // Cabin routes
 router.get('/cabins', getCabinData);

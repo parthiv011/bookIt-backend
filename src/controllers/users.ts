@@ -22,10 +22,9 @@ export async function login(req: Request, res: Response) {
       },
       JWT_SECRET
     );
-
+    res.cookie('authorization', `Bearer ${token}`);
     return res.json({
       id: user.id,
-      token: token,
       email: email,
       name: `${user.firstName} ${user.lastName}`,
     });
@@ -51,6 +50,8 @@ export async function register(req: Request, res: Response) {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
       },
     });
     const token = jwt.sign(
@@ -59,9 +60,10 @@ export async function register(req: Request, res: Response) {
       },
       JWT_SECRET
     );
+
+    res.cookie('authorization', `Bearer ${token}`);
     return res.status(201).json({
       msg: 'User registered Succeesfully',
-      token,
       newUser,
     });
   } catch (e) {
@@ -72,4 +74,10 @@ export async function register(req: Request, res: Response) {
 
 export async function getCurrentUser(req: Request, res: Response) {
   res.json(req.user);
+}
+
+export async function logout(req: Request, res: Response) {
+  res.status(200).clearCookie('authorization').json({
+    msg: 'Logged Out Successfully',
+  });
 }

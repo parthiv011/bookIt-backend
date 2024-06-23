@@ -6,7 +6,12 @@ import prisma from '../db';
 declare module 'express-serve-static-core' {
   interface Request {
     id?: string | JwtPayload;
-    user?: any;
+    user?: {
+      id: number;
+      email: string;
+      firstName: string;
+      lastName: string;
+    };
   }
 }
 
@@ -16,7 +21,7 @@ const authMiddleware = async (
   next: NextFunction
 ) => {
   const authToken = req.cookies.authorization;
-  console.log(authToken);
+  // console.log(authToken);
   if (!authToken || !authToken.startsWith('Bearer ')) {
     return res.status(403).json({
       msg: 'Invalid Token Format!',
@@ -24,13 +29,19 @@ const authMiddleware = async (
   }
 
   const token = authToken.split(' ')[1];
-  console.log(token);
+  // console.log(token);
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     req.id = decoded.id;
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
     });
 
     if (!user) {
@@ -38,7 +49,12 @@ const authMiddleware = async (
         msg: 'User not found',
       });
     }
-    req.user = user;
+    req.user = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
     next();
   } catch (e) {
     if (e instanceof jwt.TokenExpiredError) {
