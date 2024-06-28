@@ -19,7 +19,6 @@ model User {
   password  String
   firstName String
   lastName  String
-  Booking   Bookings[]
   createdAt DateTime   @default(now())
 }
 
@@ -57,8 +56,6 @@ model Bookings {
   hasBreakfast Boolean
   isPaid       Boolean
   observations String
-  userId       Int
-  User         User     @relation(fields: [userId], references: [id])
   cabinId      Int
   cabin        cabins   @relation(fields: [cabinId], references: [id])
   guestId      Int

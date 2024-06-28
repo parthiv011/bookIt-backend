@@ -8,6 +8,8 @@ import {
 import { getSettings, updateSettings } from '../controllers/settings';
 import authMiddleware from '../middlewares/auth';
 import { getCurrentUser, login, logout, register } from '../controllers/users';
+import { getBookings } from '../controllers/bookings';
+import { createGuests } from '../controllers/guests';
 // import {
 //   deleteBookings,
 //   getBookings,
@@ -36,6 +38,9 @@ router.get('/settings', getSettings);
 router.put('/settings', updateSettings);
 
 // Booking routesS
-// router.get('/bookings', getBookings);
+router.get('/bookings', getBookings);
 // router.put('/bookings', updateBookings);
 // router.delete('/bookings', deleteBookings);
+
+// Guest routes
+router.post('/guests', createGuests);
