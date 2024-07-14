@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
+
 import prisma from '../db';
 import { JWT_SECRET } from '../config';
+import multer from 'multer';
 
 export async function login(req: Request, res: Response) {
   try {
@@ -52,6 +56,7 @@ export async function register(req: Request, res: Response) {
         email: true,
         firstName: true,
         lastName: true,
+        Avatar: true,
       },
     });
     const token = jwt.sign(
@@ -81,3 +86,71 @@ export async function logout(req: Request, res: Response) {
     msg: 'Logged Out Successfully',
   });
 }
+
+const dataDir = path.join(__dirname, '../../Avatar/');
+if (!fs.existsSync(dataDir)) {
+  try {
+    fs.mkdirSync(dataDir, { recursive: true });
+  } catch (error) {
+    console.error('Error creating data directory:', error);
+    process.exit(1);
+  }
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, dataDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+const uploadMiddleware = upload.single('Avatar');
+
+export const updateUser = async (req: Request, res: Response) => {
+  uploadMiddleware(req, res, async (err) => {
+    console.log(err);
+    if (err instanceof multer.MulterError) {
+      console.log(err);
+      return res.status(400).json({
+        error: err.message,
+      });
+    } else if (err) {
+      return res.status(500).json({
+        error: 'File Upload failed',
+      });
+    }
+
+    try {
+      const { id, firstName, lastName } = req.body;
+      const avatar = req.file?.filename;
+      const avatarPath = avatar ? `/Avatar/${avatar}` : undefined;
+      console.log(id, firstName, lastName);
+
+      console.log('File:', req.file);
+      console.log('Filename:', avatar);
+      console.log('Path:', avatarPath);
+
+      const user = await prisma.user.update({
+        where: { id: parseInt(id) },
+        data: {
+          firstName: firstName,
+          lastName: lastName,
+          Avatar: avatarPath,
+        },
+      });
+
+      res.json({
+        user,
+        msg: 'User updated successfully!',
+      });
+    } catch (e) {
+      console.log(e);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+};

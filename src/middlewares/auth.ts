@@ -11,6 +11,7 @@ declare module 'express-serve-static-core' {
       email: string;
       firstName: string;
       lastName: string;
+      Avatar: string;
     };
   }
 }
@@ -41,6 +42,7 @@ const authMiddleware = async (
         email: true,
         firstName: true,
         lastName: true,
+        Avatar: true,
       },
     });
 
@@ -54,6 +56,7 @@ const authMiddleware = async (
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      Avatar: user.Avatar,
     };
     next();
   } catch (e) {

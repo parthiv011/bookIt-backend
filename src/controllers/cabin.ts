@@ -138,7 +138,6 @@ export const createCabin = async (req: Request, res: Response) => {
           error: 'Image file or image string is required',
         });
       }
-      // const hasPath = typeof image === 'string' ? `/data/${image}` : image;
 
       const cabin = await prisma.cabins.create({
         data: {

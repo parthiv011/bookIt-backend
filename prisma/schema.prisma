@@ -14,12 +14,13 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
   password  String
   firstName String
   lastName  String
-  createdAt DateTime   @default(now())
+  Avatar    String   @default("/Avatar/default-user.jpg")
+  createdAt DateTime @default(now())
 }
 
 model Guests {
@@ -52,7 +53,7 @@ model Bookings {
   cabinPrice   Float
   extraPrice   Float
   totalPrice   Float
-  status       String
+  status       Status   @default(unconfirmed)
   hasBreakfast Boolean
   isPaid       Boolean
   observations String
@@ -72,4 +73,10 @@ model cabins {
   image        String
   createdAt    DateTime   @default(now())
   Booking      Bookings[]
+}
+
+enum Status {
+  unconfirmed
+  checkedIn
+  checkedOut
 }

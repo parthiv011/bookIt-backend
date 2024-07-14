@@ -7,8 +7,18 @@ import {
 } from '../controllers/cabin';
 import { getSettings, updateSettings } from '../controllers/settings';
 import authMiddleware from '../middlewares/auth';
-import { getCurrentUser, login, logout, register } from '../controllers/users';
-import { getBookings } from '../controllers/bookings';
+import {
+  getCurrentUser,
+  login,
+  logout,
+  register,
+  updateUser,
+} from '../controllers/users';
+import {
+  getBookings,
+  getBookingsAfterDate,
+  getStaysAfterDate,
+} from '../controllers/bookings';
 import { createGuests } from '../controllers/guests';
 // import {
 //   deleteBookings,
@@ -25,6 +35,7 @@ router.get('/', (req: Request, res: Response) => {
 router.post('/login', login);
 router.post('/register', register);
 router.get('/me', authMiddleware, getCurrentUser);
+router.put('/me', authMiddleware, updateUser);
 router.get('/logout', logout);
 
 // Cabin routes
@@ -39,6 +50,8 @@ router.put('/settings', updateSettings);
 
 // Booking routesS
 router.get('/bookings', getBookings);
+router.get('/booking', authMiddleware, getBookingsAfterDate);
+router.get('/stays', authMiddleware, getStaysAfterDate);
 // router.put('/bookings', updateBookings);
 // router.delete('/bookings', deleteBookings);
 
