@@ -15,9 +15,12 @@ import {
   updateUser,
 } from '../controllers/users';
 import {
+  createBookings,
+  filterBookings,
   getBookings,
   getBookingsAfterDate,
   getStaysAfterDate,
+  // sortBookings,
 } from '../controllers/bookings';
 import { createGuests } from '../controllers/guests';
 // import {
@@ -50,8 +53,11 @@ router.put('/settings', updateSettings);
 
 // Booking routesS
 router.get('/bookings', getBookings);
+router.get('/booking', filterBookings);
+// router.get('/sortbooking', sortBookings);
 router.get('/booking', authMiddleware, getBookingsAfterDate);
 router.get('/stays', authMiddleware, getStaysAfterDate);
+router.post('/booking', authMiddleware, createBookings);
 // router.put('/bookings', updateBookings);
 // router.delete('/bookings', deleteBookings);
 
