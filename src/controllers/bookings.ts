@@ -15,6 +15,7 @@ export async function getBookings(req: Request, res: Response) {
         numGuests: true,
         status: true,
         totalPrice: true,
+        extraPrice: true,
         cabin: {
           select: {
             name: true,
@@ -120,6 +121,7 @@ export async function filterBookings(req: Request, res: Response) {
         numGuests: true,
         status: true,
         totalPrice: true,
+        extraPrice: true,
         cabin: {
           select: {
             name: true,
@@ -169,9 +171,60 @@ export async function sortBookings(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to get bookings' });
   }
 }
-export async function getBookingsById() {}
-export async function updateBookings() {}
-export async function deleteBookings() {}
+export async function getBookingsById(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid id parameter' });
+    }
+
+    const bookingId = parseInt(id);
+
+    if (isNaN(bookingId)) {
+      return res.status(400).json({ error: 'Invalid id parameter' });
+    }
+
+    const booking = await prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        createdAt: true,
+        startDate: true,
+        endDate: true,
+        numNights: true,
+        numGuests: true,
+        status: true,
+        totalPrice: true,
+        extraPrice: true,
+        cabin: {
+          select: {
+            name: true,
+          },
+        },
+        guests: {
+          select: {
+            fullName: true,
+            email: true,
+            nationalId: true,
+            Nationality: true,
+            countryFlag: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    res.status(200).json({ booking });
+  } catch (error) {
+    console.error('Failed to get bookings', error);
+    res.status(500).json({ error: 'Failed to get bookings' });
+  }
+}
+export async function updateBookings(req: Request, res: Response) {}
+export async function deleteBookings(req: Request, res: Response) {}
 export async function getBookingsAfterDate(req: Request, res: Response) {
   try {
     // Get the date from query parameters or default to the current date
@@ -183,10 +236,12 @@ export async function getBookingsAfterDate(req: Request, res: Response) {
       return res.status(400).json({ error: 'Invalid date format' });
     }
 
-    const response = await prisma.bookings.findMany({
+    const today = new Date();
+    const bookings = await prisma.bookings.findMany({
       where: {
         createdAt: {
-          gte: parseDate,
+          gt: parseDate,
+          lte: today,
         },
       },
       select: {
@@ -198,6 +253,7 @@ export async function getBookingsAfterDate(req: Request, res: Response) {
         numGuests: true,
         status: true,
         totalPrice: true,
+        extraPrice: true,
         cabin: {
           select: {
             name: true,
@@ -212,8 +268,8 @@ export async function getBookingsAfterDate(req: Request, res: Response) {
       },
     });
 
-    const bookingsLength = response.length;
-    res.status(200).json({ bookingsLength, response });
+    // const bookingsLength = bookings.length;
+    res.status(200).json({ bookings });
   } catch (error) {
     console.error('Failed to get bookings', error);
     res.status(500).json({ error: 'Failed to get bookings' });
@@ -245,6 +301,7 @@ export async function getStaysAfterDate(req: Request, res: Response) {
         numGuests: true,
         status: true,
         totalPrice: true,
+        extraPrice: true,
         cabin: {
           select: {
             name: true,
@@ -260,7 +317,7 @@ export async function getStaysAfterDate(req: Request, res: Response) {
     });
 
     const staysLength = stays.length;
-    res.status(200).json({ staysLength, stays });
+    res.status(200).json({ stays });
   } catch (error) {
     console.error('Failed to get bookings', error);
     res.status(500).json({ error: 'Failed to get bookings' });

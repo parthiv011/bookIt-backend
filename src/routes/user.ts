@@ -19,6 +19,7 @@ import {
   filterBookings,
   getBookings,
   getBookingsAfterDate,
+  getBookingsById,
   getStaysAfterDate,
   // sortBookings,
 } from '../controllers/bookings';
@@ -53,9 +54,10 @@ router.put('/settings', updateSettings);
 
 // Booking routesS
 router.get('/bookings', getBookings);
-router.get('/booking', filterBookings);
+router.get('/bookingfilter', filterBookings);
 // router.get('/sortbooking', sortBookings);
 router.get('/booking', authMiddleware, getBookingsAfterDate);
+router.get('/booking/:id', authMiddleware, getBookingsById);
 router.get('/stays', authMiddleware, getStaysAfterDate);
 router.post('/booking', authMiddleware, createBookings);
 // router.put('/bookings', updateBookings);
