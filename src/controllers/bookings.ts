@@ -16,6 +16,7 @@ export async function getBookings(req: Request, res: Response) {
         status: true,
         totalPrice: true,
         extraPrice: true,
+        isPaid: true,
         cabin: {
           select: {
             name: true,
@@ -122,6 +123,7 @@ export async function filterBookings(req: Request, res: Response) {
         status: true,
         totalPrice: true,
         extraPrice: true,
+        isPaid: true,
         cabin: {
           select: {
             name: true,
@@ -171,6 +173,7 @@ export async function sortBookings(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to get bookings' });
   }
 }
+
 export async function getBookingsById(req: Request, res: Response) {
   try {
     const { id } = req.params;
@@ -196,6 +199,7 @@ export async function getBookingsById(req: Request, res: Response) {
         status: true,
         totalPrice: true,
         extraPrice: true,
+        isPaid: true,
         cabin: {
           select: {
             name: true,
@@ -223,8 +227,41 @@ export async function getBookingsById(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to get bookings' });
   }
 }
+
 export async function updateBookings(req: Request, res: Response) {}
-export async function deleteBookings(req: Request, res: Response) {}
+
+export async function deleteBookings(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const bookingId = parseInt(id);
+
+    if (isNaN(bookingId)) {
+      return res.status(400).json({ error: 'Invalid Booking ID' });
+    }
+
+    const booking = await prisma.bookings.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    await prisma.bookings.delete({
+      where: { id: bookingId },
+    });
+
+    res.json({
+      msg: 'Booking deleted successfully!',
+    });
+  } catch (error) {
+    console.error('Error deleting Booking:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+    });
+  }
+}
+
 export async function getBookingsAfterDate(req: Request, res: Response) {
   try {
     // Get the date from query parameters or default to the current date
@@ -254,6 +291,7 @@ export async function getBookingsAfterDate(req: Request, res: Response) {
         status: true,
         totalPrice: true,
         extraPrice: true,
+        isPaid: true,
         cabin: {
           select: {
             name: true,
@@ -275,6 +313,7 @@ export async function getBookingsAfterDate(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to get bookings' });
   }
 }
+
 export async function getStaysAfterDate(req: Request, res: Response) {
   // Get the date from query parameters or default to the current date
   const dateParam = req.query.date;
@@ -302,6 +341,7 @@ export async function getStaysAfterDate(req: Request, res: Response) {
         status: true,
         totalPrice: true,
         extraPrice: true,
+        isPaid: true,
         cabin: {
           select: {
             name: true,

@@ -16,6 +16,7 @@ import {
 } from '../controllers/users';
 import {
   createBookings,
+  deleteBookings,
   filterBookings,
   getBookings,
   getBookingsAfterDate,
@@ -61,7 +62,7 @@ router.get('/booking/:id', authMiddleware, getBookingsById);
 router.get('/stays', authMiddleware, getStaysAfterDate);
 router.post('/booking', authMiddleware, createBookings);
 // router.put('/bookings', updateBookings);
-// router.delete('/bookings', deleteBookings);
+router.delete('/cabin/:id', authMiddleware, deleteBookings);
 
 // Guest routes
 router.post('/guests', createGuests);
