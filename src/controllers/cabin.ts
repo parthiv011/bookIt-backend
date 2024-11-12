@@ -4,14 +4,9 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-// import { createClient } from '@supabase/supabase-js';
+
 dotenv.config();
 const prisma = new PrismaClient();
-
-// const supabaseUrl = process.env.SUPABASE_URL || '';
-// const supabaseKey = process.env.SUPABASE_KEY || '';
-
-// const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getCabinData = async (req: Request, res: Response) => {
   try {
@@ -82,25 +77,28 @@ export const deleteCabin = async (req: Request, res: Response) => {
   }
 };
 
-const dataDir = path.join(__dirname, '../../data/');
-if (!fs.existsSync(dataDir)) {
-  try {
-    fs.mkdirSync(dataDir, { recursive: true });
-  } catch (error) {
-    console.error('Error creating data directory:', error);
-    process.exit(1);
-  }
-}
+// If using local storage
+// const dataDir = path.join(__dirname, '../../data/');
+// if (!fs.existsSync(dataDir)) {
+//   try {
+//     fs.mkdirSync(dataDir, { recursive: true });
+//   } catch (error) {
+//     console.error('Error creating data directory:', error);
+//     process.exit(1);
+//   }
+// }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, dataDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  },
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, dataDir);
+//   },
+//   filename: (req, file, cb) => {
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+//     cb(null, uniqueSuffix + '-' + file.originalname);
+//   },
+// });
+
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
@@ -127,6 +125,7 @@ export const createCabin = async (req: Request, res: Response) => {
         description,
         image: imageString,
       } = req.body;
+
       const image = req.file?.filename;
       let hasPath;
       if (image) {
