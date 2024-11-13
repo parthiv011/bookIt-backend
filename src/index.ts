@@ -17,12 +17,6 @@ app.use(
   })
 );
 
-const dataPath = path.join(__dirname, '..', 'data');
-const avatarPath = path.join(__dirname, '..', 'Avatar');
-
-app.use('/data', express.static(dataPath));
-app.use('/avatar', express.static(avatarPath));
-
 app.use('/api/v1', router);
 
 app.listen(PORT, () => {

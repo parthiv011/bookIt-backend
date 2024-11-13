@@ -6,6 +6,7 @@ import path from 'path';
 import prisma from '../db';
 import { JWT_SECRET } from '../config';
 import multer from 'multer';
+import { supabase, supabaseUrl } from '../utils/supabaseClient';
 
 export async function login(req: Request, res: Response) {
   try {
@@ -87,25 +88,7 @@ export async function logout(req: Request, res: Response) {
   });
 }
 
-const dataDir = path.join(__dirname, '../../Avatar/');
-if (!fs.existsSync(dataDir)) {
-  try {
-    fs.mkdirSync(dataDir, { recursive: true });
-  } catch (error) {
-    console.error('Error creating data directory:', error);
-    process.exit(1);
-  }
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, dataDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
@@ -127,13 +110,28 @@ export const updateUser = async (req: Request, res: Response) => {
 
     try {
       const { id, firstName, lastName } = req.body;
-      const avatar = req.file?.filename;
-      const avatarPath = avatar ? `/Avatar/${avatar}` : undefined;
-      console.log(id, firstName, lastName);
+      let avatarPath: string | undefined;
 
-      console.log('File:', req.file);
-      console.log('Filename:', avatar);
-      console.log('Path:', avatarPath);
+      if (req.file) {
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        const filePath = `users/avatars/${uniqueSuffix}-${req.file.originalname}`;
+
+        const { data, error: uploadError } = await supabase.storage
+          .from('booking')
+          .upload(filePath, req.file.buffer, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error('Supabase upload error:', uploadError);
+          return res
+            .status(500)
+            .json({ error: 'File upload to Supabase failed' });
+        }
+
+        avatarPath = `${supabaseUrl}/storage/v1/object/public/booking/${filePath}`;
+      }
 
       const user = await prisma.user.update({
         where: { id: parseInt(id) },
